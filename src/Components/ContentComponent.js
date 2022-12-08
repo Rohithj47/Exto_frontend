@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import { Content } from "antd/es/layout/layout";
 import ProjectContent from "./ProjectContent";
-import EpicContent from "./EpicContent";
-import StoriesComponent from "./StoriesComponent";
+import StoriesComponent from "./StroriesComponent";
+import ItemComponent from "./ItemComponent";
+// import StoriesComponent from "./xComponent";
 
 function ContentComponent(props) {
   const getComponentForLevel = (level) => {
     switch (level) {
       case 0:
-        return <ProjectContent data={props.data} setTable={props.setTable} />;
+        return <ProjectContent data={props.data} setTable={props.setTable} parentID = {props.parentID} />;
         break;
       case 1:
-        return <EpicContent data={props.data} setTable={props.setTable} />;
+        return <StoriesComponent data={props.data} setTable={props.setTable} parentID = {props.parentID} />;
         break;
       case 2:
-        return <StoriesComponent data={props.data} setTable={props.setTable} />;
+        return <ItemComponent data={props.data} setTable={props.setTable} parentID = {props.parentID} />;
         break;
       default:
         return null;

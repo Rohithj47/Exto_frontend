@@ -4,8 +4,7 @@ import { Button, DatePicker, Form, Input } from "antd";
 import { Modal } from "antd";
 const { Column } = Table;
 
-
-function EpicContent(props) {
+function xComponent(props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const parseDate = (strDate) => {
@@ -37,7 +36,7 @@ function EpicContent(props) {
     <div>
       <>
         <Button type="primary" onClick={showModal}>
-          Create Epic
+          Create Story
         </Button>
         <Modal
           title="Basic Modal"
@@ -168,7 +167,7 @@ function EpicContent(props) {
         <Column
           title="Title"
           render={(_, record) => (
-            <a onClick={() => props.setTable(2, record.id)}>{record.title}</a>
+            <a onClick={() => props.setTable(3, record.id)}>{record.title}</a>
           )}
           key="title"
         />
@@ -223,4 +222,4 @@ function EpicContent(props) {
   );
 }
 
-export default EpicContent;
+export default xComponent;

@@ -18,23 +18,9 @@ const { Header, Footer, Sider } = Layout;
 const App = () => {
   const [bc, setBc] = useState("Projects");
   const [level, setLevel] = useState(0); // 0 is Project Level
-
-  // const getProjects = () => {
-  //   api
-  //     .get("/projects", {
-  //       params: {
-  //         user_username: "user@nike.com",
-  //         user_password: "user@nike.com",
-  //       },
-  //     })
-  //     .then(function (response) {
-  //       setData(response.data.projects)
-  //     })
-  //     .catch(function (error) {
-  //       console.log(error);
-  //     });
-  // };
+  const [parentID, setParentID] = useState(null);
   const [tableData, setData] = useState([]);
+
   useEffect(() => {
     api
       .get("/projects", {
@@ -53,9 +39,9 @@ const App = () => {
 
 
   const setTable = (level, id) => {
+    setParentID(id);
     switch (level) {
       case 0:
-        console.log("hi")
         api
           .get("/projects", {
             params: {
@@ -73,33 +59,13 @@ const App = () => {
         setLevel(0);
         break;
       case 1:
-        //epics
-        api
-          .get("/epics", {
-            params: {
-              user_username: "user@nike.com",
-              user_password: "user@nike.com",
-              project: id,
-            },
-          })
-          .then(function (response) {
-            console.log(response.data.epics);
-            setData(response.data.epics);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-        setBc("Projects/Epics");
-        setLevel(1);
-        break;
-      case 2:
         //stories
         api
           .get("/stories", {
             params: {
               user_username: "user@nike.com",
               user_password: "user@nike.com",
-              epic: id,
+              project: id,
             },
           })
           .then(function (response) {
@@ -108,7 +74,26 @@ const App = () => {
           .catch(function (error) {
             console.log(error);
           });
-        setBc("Projects/Epics/Stories");
+        setBc("Projects/Stories");
+        setLevel(1);
+        break;
+      case 2:
+        //items
+        api
+          .get("/items", {
+            params: {
+              user_username: "user@nike.com",
+              user_password: "user@nike.com",
+              story: id,
+            },
+          })
+          .then(function (response) {
+            setData(response.data.items);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+        setBc("Projects/Stories/Items");
         setLevel(2);
         break;
       default:
@@ -184,7 +169,7 @@ const App = () => {
             {bc}
           </Title>
         </Header>
-        <ContentComponent level={level} data={tableData} setTable={setTable} />
+        <ContentComponent level={level} data={tableData} setTable={setTable} parentID = {parentID} />
         <Footer
           style={{
             textAlign: "center",

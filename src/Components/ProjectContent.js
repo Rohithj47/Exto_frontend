@@ -11,7 +11,11 @@ function ProjectContent(props) {
   const [projectManagers, setProjectManagers] = useState([]);
   const [scrumMaster, setScrumMasters] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [organisations, setOrganisations] = useState([]);
+  const [currProject, setCurrProject] = useState({});
+  const [modelOperation, setModalOperation] = useState("Create");
+  const [customerList, setCustomerList] = useState([]);
+  const [projectManagerList, setPM] = useState([]);
+  const [scrumMasterList, setSM] = useState([]);
 
   const parseDate = (strDate) => {
     return new Date(strDate).toDateString();
@@ -26,6 +30,7 @@ function ProjectContent(props) {
         },
       })
       .then(function (response) {
+        setPM(response.data.project_managers);
         const pmOption = response.data.project_managers.map((item) => {
           const object = {};
           object.value = item.id;
@@ -46,6 +51,7 @@ function ProjectContent(props) {
         },
       })
       .then(function (response) {
+        setSM(response.data.scrum_masters);
         const scrumOption = response.data.scrum_masters.map((item) => {
           const object = {};
           object.value = item.id;
@@ -66,6 +72,7 @@ function ProjectContent(props) {
         },
       })
       .then(function (response) {
+        setCustomerList(response.data.customers);
         const customerOption = response.data.customers.map((item) => {
           const object = {};
           object.value = item.id;
@@ -79,31 +86,74 @@ function ProjectContent(props) {
       });
   }, []);
 
-  const getPM = (id) => {};
+  const getProject = (id) => {
+    return props.data.find((item) => item.id === id);
+  };
 
-  const onFinish = (values) => {
-    const project = {};
-    project.user_username = "user@nike.com";
-    project.user_password = "user@nike.com";
-    project.title = values.title;
-    project.customer = values.customer;
-    project.start_date = `${values.startDate.year()}-${
-      values.startDate.month() + 1
-    }-${values.startDate.date().toString().padStart(2, "0")}`;
-    project.end_date = `${values.endDate.year()}-${
-      values.endDate.month() + 1
-    }-${values.endDate.date().toString().padStart(2, "0")}`;
-    project.project_manager = values.projectManager;
-    project.scrum_master = values.scrumMaster;
-    console.log("Success:", values);
+  const deleteProject = (id) => {
+    const delBody = {};
+    delBody.user_username = "user@nike.com";
+    delBody.user_password = "user@nike.com";
+    delBody.project = id;
+
     api
-      .post("/projects", project)
-      .then(function (res) {
+      .delete("/projects", { data: delBody })
+      .then((res) => {
         props.setTable(0, null);
       })
-      .catch(function (err) {
+      .catch((err) => {
         console.log(err);
       });
+  };
+
+  const onFinish = (values) => {
+    if (modelOperation == "Create") {
+      const project = {};
+      project.user_username = "user@nike.com";
+      project.user_password = "user@nike.com";
+      project.title = values.title;
+      project.customer = values.customer;
+      project.start_date = `${values.startDate.year()}-${
+        values.startDate.month() + 1
+      }-${values.startDate.date().toString().padStart(2, "0")}`;
+      project.end_date = `${values.endDate.year()}-${
+        values.endDate.month() + 1
+      }-${values.endDate.date().toString().padStart(2, "0")}`;
+      project.project_manager = values.projectManager;
+      project.scrum_master = values.scrumMaster;
+      console.log("Success:", values);
+      api
+        .post("/projects", project)
+        .then(function (res) {
+          props.setTable(0, null);
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
+    } else {
+      const project = {};
+      project.user_username = "user@nike.com";
+      project.user_password = "user@nike.com";
+      project.title = values.title;
+      project.project = currProject.id;
+      project.customer = values.customer;
+      project.start_date = `${values.startDate.year()}-${
+        values.startDate.month() + 1
+      }-${values.startDate.date().toString().padStart(2, "0")}`;
+      project.end_date = `${values.endDate.year()}-${
+        values.endDate.month() + 1
+      }-${values.endDate.date().toString().padStart(2, "0")}`;
+      project.project_manager = values.projectManager;
+      project.scrum_master = values.scrumMaster;
+      api
+        .put("/projects", project)
+        .then(function (res) {
+          props.setTable(0, null);
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
+    }
     setIsModalOpen(false);
   };
   const onFinishFailed = (errorInfo) => {
@@ -111,6 +161,12 @@ function ProjectContent(props) {
   };
 
   const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const showModalCreate = () => {
+    setCurrProject({});
+    setModalOperation("Create");
     setIsModalOpen(true);
   };
 
@@ -124,7 +180,7 @@ function ProjectContent(props) {
   return (
     <div>
       <>
-        <Button type="primary" onClick={showModal}>
+        <Button type="primary" onClick={showModalCreate}>
           Create Project
         </Button>
         <Modal
@@ -141,12 +197,11 @@ function ProjectContent(props) {
             wrapperCol={{
               span: 16,
             }}
-            initialValues={{
-              remember: true,
+            default={{
+              remember: false,
             }}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
-            autoComplete="off"
           >
             <Form.Item
               label="Title"
@@ -158,22 +213,12 @@ function ProjectContent(props) {
                 },
               ]}
             >
-              <Input />
+              {console.log("model operation", modelOperation)}
+              {console.log(currProject.title)}
+              <Input
+                // defaultValue={modelOperation === "Update" ? currProject.title : null}
+              />
             </Form.Item>
-
-            {/* <Form.Item
-              label="Organisation"
-              name="organisation"
-              rules={[
-                {
-                  required: true,
-                  message: "Please enter organisation",
-                },
-              ]}
-            >
-              <Input defaultValue={1} />
-            </Form.Item> */}
-
             <Form.Item
               label="Customer"
               name="customer"
@@ -184,7 +229,18 @@ function ProjectContent(props) {
                 },
               ]}
             >
-              <Select options={customers} />
+              {console.log("model operation", modelOperation)}
+              {console.log("customer", currProject.customer)}
+              <Select
+                // defaultValue={
+                //   modelOperation === "Update"
+                //     ? customerList.find(
+                //         (item) => item.id === currProject.customer
+                //       ).name
+                //     : null
+                // }
+                options={customers}
+              />
             </Form.Item>
 
             <Form.Item
@@ -212,7 +268,6 @@ function ProjectContent(props) {
             >
               <DatePicker />
             </Form.Item>
-            {/* 
             <Form.Item
               label="Project Manager"
               name="projectManager"
@@ -223,20 +278,10 @@ function ProjectContent(props) {
                 },
               ]}
             >
-              <Input />
-            </Form.Item> */}
-
-            <Form.Item
-              label="Project Manager"
-              name="projectManager"
-              rules={[
-                {
-                  required: true,
-                  message: "Please enter project manager",
-                },
-              ]}
-            >
-              <Select options={projectManagers} />
+              <Select
+                // defaultValue={currProject.project_manager}
+                options={projectManagers}
+              />
             </Form.Item>
 
             <Form.Item
@@ -249,7 +294,10 @@ function ProjectContent(props) {
                 },
               ]}
             >
-              <Select options={scrumMaster} />
+              <Select
+                // defaultValue={currProject.scrum_master}
+                options={scrumMaster}
+              />
             </Form.Item>
 
             <Form.Item
@@ -259,7 +307,7 @@ function ProjectContent(props) {
               }}
             >
               <Button type="primary" htmlType="submit">
-                Submit
+                {modelOperation}
               </Button>
             </Form.Item>
           </Form>
@@ -275,13 +323,17 @@ function ProjectContent(props) {
         />
         <Column
           title="Project Manager"
-          //   render={(_, record) => parseDate(record.start_date)}
+          render={(_, record) =>
+            projectManagerList.find((item) => record.project_manager).first_name
+          }
           dataIndex="project_manager"
           key="project_manager"
         />
         <Column
           title="Scrum Master"
-          //   render={(_, record) => parseDate(record.start_date)}
+          render={(_, record) =>
+            scrumMasterList.find((item) => record.scrum_master).first_name
+          }
           dataIndex="scrum_master"
           key="scrum_master"
         />
@@ -314,8 +366,22 @@ function ProjectContent(props) {
           key="action"
           render={(_, record) => (
             <Space size="middle">
-              <a>Update </a>
-              <a>Delete</a>
+              <a
+                onClick={() => {
+                  setCurrProject(getProject(record.id));
+                  setModalOperation("Update");
+                  showModal();
+                }}
+              >
+                Update
+              </a>
+              <a
+                onClick={() => {
+                  deleteProject(record.id);
+                }}
+              >
+                Delete
+              </a>
             </Space>
           )}
         />
